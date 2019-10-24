@@ -8,10 +8,11 @@ import user from "../pages/user/user";
 import role from "../pages/role/role";
 import permission from "../pages/permission/permission";
 import menu from "../pages/menu/menu";
+import errorinfo from '../pages/err/404'
 
-Vue.use(Router)
+Vue.use(Router);
 
-export default new Router({
+const router = new Router({
   routes: [
     {
       path: '/',
@@ -28,6 +29,7 @@ export default new Router({
       path: '/home',
       name: 'home',
       component: home,
+      redirect: '/welcome',
       children: [
         {
           path: '/welcome',
@@ -48,7 +50,7 @@ export default new Router({
           path: '/menu',
           name: 'menu',
           component: menu,
-        }
+        },
       ]
     },
     //后台管理页面路由
@@ -65,7 +67,22 @@ export default new Router({
           component: user
         }
       ]
+    },
+    //404page
+    {
+      path: '*',
+      name: 'errorinfo',
+      component: errorinfo
     }
-
   ]
-})
+});
+
+// router.beforeEach((to, from, next) => {
+//   if (to.matched.length === 0) {  //如果未匹配到路由
+//     from.path ? next({path: from.path}) : next('/errorinfo');   //如果上级也未匹配到路由则跳转主页面，如果上级能匹配到则转上级路由
+//   } else {
+//     next();    //如果匹配到正确跳转path
+//   }
+// });
+
+export default router;

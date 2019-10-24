@@ -14,18 +14,18 @@
         :collapse="isCollapsed"
         :default-active="$route.path">
         <template v-for="(item, index) in sider_menu_data">
-          <el-menu-item class="menu-item" v-if="!item.children" :index="item.path" :key="index">
-            <i :class="item.icon"></i>
-            <span slot="title">{{item.title}}</span>
+          <el-menu-item class="menu-item" v-if="item.children.length <= 0" :index="item.menuPath" :key="index">
+            <i :class="item.menuIcon"></i>
+            <span slot="title">{{item.menuTitle}}</span>
           </el-menu-item>
-          <el-submenu v-else :index="item.path">
+          <el-submenu v-else :index="item.menuPath">
             <template slot="title">
-              <i :class="item.icon"></i>
-              <span slot="title">{{item.title}}</span>
+              <i :class="item.menuIcon"></i>
+              <span slot="title">{{item.menuTitle}}</span>
             </template>
-            <el-menu-item class="menu-item" v-for="(sub_item, sub_index) in item.children" :index="sub_item.path"
+            <el-menu-item class="menu-item" v-for="(sub_item, sub_index) in item.children" :index="sub_item.menuPath"
                           :key="sub_index">
-              <span slot="title" style="margin-left:12px;">{{sub_item.title}}</span>
+              <span slot="title" style="margin-left:12px;">{{sub_item.menuTitle}}</span>
             </el-menu-item>
           </el-submenu>
         </template>
@@ -82,38 +82,9 @@
   export default {
     data() {
       return {
-        sider_menu_data: [
-          {
-            path: '/welcome',
-            title: '欢迎',
-            icon: 'el-icon-s-promotion'
-          },
-          {
-            path: '/user',
-            title: '用户中心',
-            icon: 'el-icon-user-solid',
-            children: [
-              {path: '/user/manage', title: '用户管理'},
-            ]
-          },
-          {
-            path: '/role',
-            title: '角色管理',
-            icon: 'el-icon-user',
-          },
-          {
-            path: '/permission',
-            title: '权限管理',
-            icon: 'el-icon-lock',
-          },
-          {
-            path: '/menu',
-            title: '菜单管理',
-            icon: 'el-icon-folder-add',
-          }
-        ],
+        sider_menu_data: [],
         isCollapsed: false,
-        adminMenuShow: false
+        adminMenuShow: false,
       }
     },
     methods: {
@@ -123,6 +94,16 @@
       toggleMenu() {
         this.isCollapsed = !this.isCollapsed;
       },
+      initMenu(){
+        this.$axios.get('/apis/management/manage/menu').then(res => {
+          this.sider_menu_data = res.data.data;
+        }).catch(err => {
+          console.log(err.response);
+        })
+      }
+    },
+    mounted() {
+      this.initMenu();
     }
   }
 </script>
