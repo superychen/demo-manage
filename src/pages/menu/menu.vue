@@ -10,7 +10,7 @@
       </el-col>
       <el-col :span="6">
         <span>删除菜单</span>
-        <el-button :disabled="isDelete" type="danger" icon="el-icon-delete" circle></el-button>
+        <el-button @click="deleteMenu" :disabled="isDelete" type="danger" icon="el-icon-delete" circle></el-button>
       </el-col>
     </el-row>
     <el-row>
@@ -58,8 +58,7 @@
             label="操作"
             width="100">
             <template slot-scope="scope">
-              <el-button @click="handcreateTimeleClick(scope.row)" type="text" size="small">查看</el-button>
-              <el-button type="text" size="small">编辑</el-button>
+              <el-button @click="updateMenu(scope.row)" type="text" size="small">编辑</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -81,7 +80,7 @@
         </div>
       </el-col>
       <el-dialog
-        title="新建菜单"
+        :title="diaogTitle"
         :visible.sync="centerDialogVisible"
         width="32%"
         :modal="false"
@@ -141,19 +140,20 @@
         </el-form>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dioagClose">取 消</el-button>
-          <el-button type="primary" @click="dialogFatherMenu = false">确 定</el-button>
+          <el-button type="primary" @click="fatherSub">确 定</el-button>
         </span>
       </el-dialog>
-
-
     </el-row>
   </div>
 </template>
 
 <script>
+  import Vue from 'vue'
+
   export default {
     data() {
       return {
+        diaogTitle: '新建菜单',
         tableData: [],
         multipleSelection: [],
         username: '',
@@ -169,6 +169,7 @@
         },
         father: [], //选择菜单作为父亲节点
         validateForm: {
+          mid: 0,
           menuTitle: '',
           menuLevel: 0, //0为父级，1为子级
           menuPath: '', //菜单路径
@@ -185,12 +186,6 @@
           menuLevel: [
             {required: true, message: '请选择菜单的层级', trigger: 'change'}
           ],
-          menuPath: [
-            {required: true, message: '请输入菜单的路径', trigger: 'change'}
-          ],
-          menuIcon: [
-            {required: true, message: '请输入菜单的图标', trigger: 'change'}
-          ],
         }
       }
     },
@@ -205,7 +200,37 @@
         }
       },
       handleSelectionChange(val) {
-        this.multipleSelection = val;
+        this.multipleSelection = [];
+        val.forEach(res => {
+          this.multipleSelection.push(res.mid);
+        });
+      },
+      //删除菜单
+      deleteMenu() {
+        this.$confirm('此操作将永久删除该菜单, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.deleteMenuHelper();
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+      },
+      deleteMenuHelper() {
+        this.$axios.delete('/apis/management/manage/menu', {data: this.multipleSelection}).then(res => {
+          if (res.data.code === 200) {
+            this.$getMessage('菜单删除成功', 'success');
+            setTimeout(() => {
+              this.$router.go(0)
+            }, 1500);
+          }
+        }).catch(err => {
+          console.log(err.response.data);
+        })
       },
       showDelete(selection) {
         if (selection.length !== 0) {
@@ -234,22 +259,28 @@
         this.$axios.get('/apis/management/manage/menus', {
           params: param
         }).then(res => {
-          if (res.data.code === 200) {
             this.tableData = res.data.data.records;
             this.totalSize = res.data.data.total;
-          } else {
-            this.$getMessage(res.data.data, 'error');
-          }
         }).catch(err => {
           console.log(err.response);
-          this.$getMessage(err.response, 'error');
         })
       },
       //创建菜单
       createMenu() {
+        this.diaogTitle = '新建菜单';
         this.centerDialogVisible = true;
+        this.validateForm.mid = 0;
+        this.validateForm.menuTitle = '';
+        this.validateForm.menuIcon = '';
+        this.validateForm.menuPath = '';
+        this.validateForm.menuLevel = 0;
+        this.fatherMenu.menuPid = 0;
+        this.validateForm.role = [];
+        this.createOrUpdate();
+      },
+      //查询当前的角色
+      createOrUpdate() {
         this.$axios.get('/apis/management/manage/role').then(res => {
-          console.log(res.data);
           this.validateForm.roles = res.data.data;
         }).catch(err => {
           console.log(err.response.data);
@@ -267,6 +298,15 @@
           })
         } else {
           this.fatherMenu.menuPid = 0;
+        }
+      },
+      //确认选择父级节点
+      fatherSub() {
+        if (this.fatherMenu.menuPid !== 0) {
+          this.$getMessage('选择成功', 'success');
+          this.dialogFatherMenu = false;
+        } else {
+          this.$getMessage('请先选择父节点', 'warning');
         }
       },
       //父级节点关闭对话框系列
@@ -294,17 +334,54 @@
           menuPid: this.fatherMenu.menuPid,
           role: this.validateForm.role,
         };
-        this.$axios.post('/apis/management/manage/menu', menu).then(res => {
-          if (res.data.code === 200) {
-            this.$getMessage('新建菜单成功','success');
-            setTimeout(() => {this.$router.go(0)}, 2000);
-          }else {
-            this.$getMessage(res.data.data,'error');
-          }
+        if (this.validateForm.mid === 0) {
+          this.$axios.post('/apis/management/manage/menu', menu).then(res => {
+            if (res.data.code === 200) {
+              this.$getMessage('新建菜单成功', 'success');
+              setTimeout(() => {
+                this.$router.go(0)
+              }, 1500);
+            } else {
+              this.$getMessage(res.data.data, 'error');
+            }
+          }).catch(err => {
+            console.log(err.response.data);
+            this.$getMessage(err.response.data, 'error');
+          });
+        } else {
+          Vue.set(menu, 'mid', this.validateForm.mid);
+          this.$axios.put('/apis/management/manage/menu', menu).then(res => {
+            console.log(res.data);
+            this.$getMessage('修改菜单成功', 'success');
+            setTimeout(() => {
+              this.$router.go(0)
+            }, 1500);
+          }).catch(err => {
+            this.$getMessage(err.response.data, 'error');
+          })
+        }
+
+
+      },
+      //编辑菜单信息
+      updateMenu(row) {
+        console.log(row);
+        this.diaogTitle = '修改菜单';
+        this.centerDialogVisible = true;
+        this.validateForm.mid = row.mid;
+        this.validateForm.menuTitle = row.menuTitle;
+        this.validateForm.menuIcon = row.menuIcon;
+        this.validateForm.menuPath = row.menuPath;
+        this.validateForm.menuLevel = row.menuLevel;
+        this.fatherMenu.menuPid = row.menuPid;
+        this.createOrUpdate();
+        this.$axios.get('/apis/management/manage/roleMenu/' + row.mid).then(res => {
+          console.log(res.data);
+          this.validateForm.role = res.data.data;
         }).catch(err => {
-          console.log(err.response.data);
-          this.$getMessage(err.response.data,'error');
-        });
+          console.log(err.response);
+          this.$getMessage(err.response.data, 'error');
+        })
       }
 
     },

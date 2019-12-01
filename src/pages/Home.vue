@@ -37,54 +37,128 @@
       <div style="float: left" class="menu-collapse-wrapper float-left" @click="toggleMenu">
         <i class="el-icon-menu" :style="{transform: 'rotateZ(' + (this.isCollapsed ? '90' : '0') + 'deg)'}"></i>
       </div>
-      <div style="float: left;" class="title">后台管理系统</div>
+      <div style="float: left;" class="title">车辆检测后台管理</div>
       <ul style="float: right" class="menu-list">
         <li class="menu-item" style="padding: 0;">
           <el-dropdown
             :show-timeout="10"
             :hide-timeout="10"
-            @command="handleCommand"
             style="padding: 0 15px;">
             <div class="dropdown-content el-dropdown-link">
-              <i class="icon el-icon-s-custom"></i>
-              <span class="text">cqyc</span>
+              <i v-if="user.userImg === ''" class="icon el-icon-s-custom"></i>
+              <el-avatar shape="square" style="padding-left: 2px;" size="small"
+                         :src="$fastdfsUrl.fastdfs + user.userImg"></el-avatar>
+              <span class="text">{{user.username}}</span>
             </div>
             <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item command="a">修改密码</el-dropdown-item>
+              <el-dropdown-item>
+                <div @click="openUserInfo">
+                  修改用户信息
+                </div>
+              </el-dropdown-item>
+              <el-dropdown-item>
+                <div @click="openUserPassword">
+                  修改密码
+                </div>
+              </el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
         </li>
         <li class="menu-item" title="有什么问题嘛?请及时联系管理员">
           <i class="icon el-icon-question"></i>
         </li>
-        <li class="menu-item" title="退出登录">
+        <li @click="exitUser" class="menu-item" title="退出登录">
           <i class="icon el-icon-switch-button"></i>
         </li>
       </ul>
     </div>
-
     <div class="content-wrapper" ref="content-wrapper" :style="{left: this.isCollapsed?'64px':'200px'}">
       <div class="content">
         <router-view></router-view>
       </div>
     </div>
+
+    <el-dialog
+      title="用户信息修改"
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose">
+      <user-info ref="cuserInfo" v-bind:user="user"></user-info>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="paUserInfo">确 定</el-button>
+      </span>
+    </el-dialog>
+
+    <el-dialog
+      title="提示"
+      :visible.sync="passwordDialog"
+      width="30%"
+      :before-close="passwordClose">
+      <el-form label-width="80px">
+        <el-form-item label="旧密码">
+          <el-input type="password" v-model="password"></el-input>
+        </el-form-item>
+        <el-form-item label="新密码">
+          <el-input type="password" v-model="newPassword"></el-input>
+        </el-form-item>
+        <el-form-item label="确认密码">
+          <el-input type="password" v-model="confirmPassword"></el-input>
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input placeholder="请输入手机号" v-model="telephone"></el-input>
+        </el-form-item>
+        <el-form-item label="验证码">
+          <el-input v-model="veriyCode">
+            <el-button placeholder="请输入验证码" slot="append" type="primary" @click="sendTelCode" icon="el-icon-phone">
+              {{codeMsg}}
+            </el-button>
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="passwordDialog = false">取 消</el-button>
+        <el-button type="primary" @click="updatePassword">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
   import Router from 'vue-router'
+  //1.先使用import导入你要在该组件中使用的子组件
+  import userInfo from '../components/userInfo'
+
   //这段代码解决NavigationDuplicated错
   const originalPush = Router.prototype.push;
   Router.prototype.push = function push(location) {
     return originalPush.call(this, location).catch(err => err)
-  }
+  };
 
   export default {
+    components: {userInfo},
     data() {
       return {
         sider_menu_data: [],
         isCollapsed: false,
         adminMenuShow: false,
+        dialogVisible: false,
+        user: {
+          username: '', //用户信息
+          telephone: '',//用户电话
+          address: '', //用户的地址
+          uid: 0, //用户id
+          userImg: '',//用户图片
+        },
+        passwordDialog: false,
+        password: '',//旧密码
+        newPassword: '', //新密码
+        confirmPassword: '',//确认密码
+        telephone: '',//电话
+        veriyCode: '',//电话验证码
+        codeTime: 60,//发送验证码后需要300后才能发送
+        codeMsg: "发送验证码",
+        timeName: null,
       }
     },
     methods: {
@@ -94,9 +168,113 @@
       toggleMenu() {
         this.isCollapsed = !this.isCollapsed;
       },
-      initMenu(){
+      initMenu() {
         this.$axios.get('/apis/management/manage/menu').then(res => {
           this.sider_menu_data = res.data.data;
+        }).catch(err => {
+          console.log(err.response);
+        })
+      },
+      //得到用户信息
+      userInfo() {
+        this.$axios.get('/apis/login-sms/login/user').then(res => {
+          if (res.data.code === 200) {
+            this.user.username = res.data.data.username;
+            this.user.telephone = res.data.data.telephone;
+            this.user.address = res.data.data.address;
+            this.user.uid = res.data.data.uid;
+            this.user.userImg = res.data.data.userImg;
+          }
+        }).catch(err => {
+          console.log(err.response);
+        })
+      },
+      handleClose() {
+        this.dialogVisible = false;
+      },
+      //修改用户信息
+      openUserInfo() {
+        this.dialogVisible = true;
+      },
+      //修改用户密码
+      openUserPassword() {
+        this.passwordDialog = true;
+      },
+      passwordClose(done) {
+        done();
+      },
+      paUserInfo() {
+        this.user.userImg = this.$refs.cuserInfo.uploadUrl;
+        console.log(this.user);
+        this.$axios.put('apis/login-sms/login/user', this.user).then(res => {
+          console.log(res.data);
+          if (res.data.code === 200) {
+            this.$getMessage('修改用户成功', 'success')
+            this.dialogVisible = false;
+          }
+        }).catch(err => {
+          console.log(err.response);
+        })
+      },
+      //发送电话验证
+      sendTelCode() {
+        if (this.newPassword !== this.confirmPassword || this.newPassword === '') {
+          this.$getMessage('密码不能为空或两次密码输入不一致', 'error');
+          return false;
+        }
+        this.$axios.post('/apis/management/manage/sendsms', this.$qs.stringify({
+          telephone: this.telephone
+        })).then(res => {
+          if (res.data.code === 200) {
+            this.$getMessage(res.data.data, 'success');
+            this.timeName = setInterval(() => {//定时器
+              this.codeTime--;
+              this.codeMsg = this.codeTime + "秒";
+              if (this.codeTime <= 0) {
+                this.codeMsg = "发送验证码";
+                clearInterval(this.timeName);//清除轮询
+                return;
+              }
+            }, 1000);
+          }
+        }).catch(err => {
+          console.log(err.response);
+        });
+      },
+
+      updatePassword() {
+        if (this.newPassword !== this.confirmPassword || this.newPassword === '') {
+          this.$getMessage('密码不能为空或两次密码输入不一致', 'error');
+          return false;
+        }
+        this.$axios.post('/apis/login-sms/login/change/pass', this.$qs.stringify({
+          password: this.password,
+          newPassword: this.newPassword,
+          telephone: this.telephone,
+          veriyCode: this.veriyCode
+        })).then(res => {
+          if (res.data.code === 200) {
+            console.log(res.data);
+            this.$getMessage('修改密码成功,请重新登录', 'success')
+            this.$Cookies.set('token', '');
+            setTimeout(() => {
+              this.$router.push({path: '/login'});
+            }, 1500);
+          }
+        }).catch(err => {
+          console.log(err.response);
+        })
+
+      },
+      //退出登录
+      exitUser() {
+        this.$axios.post('/apis/login-sms/login/exit').then(res => {
+          if (res.data.code === 200) {
+            this.$getMessage('退出成功','success');
+            //清空cookie中的token
+            this.$Cookies.set('token','');
+            setTimeout(() => {this.$router.push({path:'/login'})},1000);
+          }
         }).catch(err => {
           console.log(err.response);
         })
@@ -104,6 +282,7 @@
     },
     mounted() {
       this.initMenu();
+      this.userInfo();
     }
   }
 </script>

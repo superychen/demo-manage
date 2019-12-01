@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>404 not found</h1>
+    <h1>404 not found,请联系管理员</h1>
   </div>
 </template>
 

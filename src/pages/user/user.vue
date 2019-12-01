@@ -255,8 +255,8 @@
               this.$getMessage('添加用户数据成功', 'success');
               this.dialogVisible = false; //关闭对话框
               this.selectAllPage();
-            }else {
-              this.$getMessage(res.data.data,'error');
+            } else {
+              this.$getMessage(res.data.data, 'error');
             }
           }).catch(err => {
             console.log(err.response);
@@ -277,8 +277,8 @@
               this.$getMessage('用户修改成功', 'success');
               this.dialogVisible = false; //关闭对话框
               this.selectAllPage();
-            }else {
-              this.$getMessage(res.data.data,'error');
+            } else {
+              this.$getMessage(res.data.data, 'error');
             }
           }).catch(err => {
             this.$getMessage(err.response.data, 'error');

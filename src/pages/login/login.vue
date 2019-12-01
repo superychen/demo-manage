@@ -17,7 +17,7 @@
             <el-form-item label="校验码" prop="verfiyCode">
               <el-input v-model.trim="ruleForm.verfiyCode" placeholder="校验码">
                 <template slot="append">
-                  <img src="../../assets/img/verification-code.png" alt="" height="35">
+                  <img @click="changeImgUrl" :src="createImg" alt="" height="35">
                 </template>
               </el-input>
             </el-form-item>
@@ -37,11 +37,9 @@
     name: "login",
     data() {
       let checkVerfiyCode = (rule, value, callback) => {
-        if(value === ''  || value.length < 0){
+        if (value === '' || value.length < 0) {
           callback(new Error('校验码不能为空'));
-        }else if(value !== this.imgCode){
-          callback(new Error('校验码输入错误'));
-        }else{
+        } else {
           callback();
         }
       };
@@ -52,7 +50,7 @@
           callback(new Error('用户名不能为空'));
         } else if (value.length < 0 || value.length > 16) {
           callback(new Error('用户名长度必须大于0或者小于16位'));
-        } else if(reg.test(value)){
+        } else if (reg.test(value)) {
           callback(new Error('用户名不能包括空格'));
         } else {
           callback();
@@ -63,15 +61,15 @@
         let reg = new RegExp(/^(?![^a-zA-Z]+$)(?!\D+$)/);
         //匹配所有空格
         let regKong = /\s+/g;
-        if(value === ''){
+        if (value === '') {
           callback(new Error('密码不能输入为空'));
-        }else if(value.length < 0 || value.length > 16){
+        } else if (value.length < 0 || value.length > 16) {
           callback(new Error('密码长度必须大于0小于16位'));
-        }else if(regKong.test(value)){
+        } else if (regKong.test(value)) {
           callback(new Error('密码输入不能包含有空格'));
-        }else if(!reg.test(value)){
+        } else if (!reg.test(value)) {
           callback(new Error('密码必须由数字和字母组成'))
-        }else{
+        } else {
           callback();
         }
       };
@@ -81,6 +79,7 @@
           checkPass: '',
           verfiyCode: ''
         },
+        createImg: 'apis/login-sms/comm/img',
         rules: {
           username: [
             {validator: validateUsername, trigger: 'blur'}
@@ -92,7 +91,6 @@
             {validator: checkVerfiyCode, trigger: 'blur'}
           ]
         },
-        imgCode: '5418', //图片验证码，这里先写死
       };
     },
     methods: {
@@ -100,10 +98,21 @@
         this.$refs[formName].validate((valid) => {
           console.log(valid);
           if (valid) {
-            //todo 这里写请求
-            alert('即将写请求!');
-            //跳转到后台管理主页面
-            this.$router.push({path:'/home'});
+            this.$axios.post('/apis/login-sms/login', this.$qs.stringify({
+              username: this.ruleForm.username,
+              password: this.ruleForm.checkPass,
+              imgCode: this.ruleForm.verfiyCode,
+            })).then(res => {
+              //跳转到后台管理主页面
+              if (res.data.code === 200) {
+                this.$Cookies.set('token', res.data.data.token, {expires: 1});
+                this.$Cookies.set('username', res.data.data.username, {expires: 1});
+                this.$router.push({path: '/home'});
+              }
+            }).catch(err => {
+              console.log(err.response.data);
+              this.$getMessage(err.response.data, 'error');
+            });
           } else {
             console.log('error submit!!');
             return false;
@@ -112,7 +121,13 @@
       },
       resetForm(formName) {
         this.$refs[formName].resetFields();
+      },
+      //点击更换图片
+      changeImgUrl () {
+        this.createImg="apis/login-sms/comm/img?id="+Math.random();
       }
+    },
+    mounted() {
     }
   }
 </script>
