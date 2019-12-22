@@ -18,11 +18,19 @@ module.exports = {
         pathRewrite: {
           '^/apis': '' //需要rewrite重写的,
         }
-      }
+      },
+      '/pdfs': {
+        // 测试环境
+        target: 'http://192.168.228.51',  // 接口ip
+        changeOrigin: true,  //是否跨域
+        pathRewrite: {
+          '^/pdfs': '' //需要rewrite重写的,
+        }
+      },
     },
 
     // Various Dev Server settings
-    host: 'localhost', // can be overwritten by process.env.HOST
+    host: '0.0.0.0', // can be overwritten by process.env.HOST
     port: 8080, // can be overwritten by process.env.PORT, if port is in use, a free one will be determined
     autoOpenBrowser: false, //设置为true,可以自动打开浏览器
     errorOverlay: true,

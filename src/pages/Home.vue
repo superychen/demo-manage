@@ -170,6 +170,7 @@
       },
       initMenu() {
         this.$axios.get('/apis/management/manage/menu').then(res => {
+          console.log(res.data.data);
           this.sider_menu_data = res.data.data;
         }).catch(err => {
           console.log(err.response);

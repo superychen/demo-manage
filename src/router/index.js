@@ -8,6 +8,8 @@ import role from "../pages/role/role";
 import permission from "../pages/permission/permission";
 import menu from "../pages/menu/menu";
 import errorinfo from '../pages/err/404'
+import draggable from "../pages/login/draggable/draggable";
+import pdf from "../pages/login/draggable/pdf";
 
 Vue.use(Router);
 
@@ -67,12 +69,24 @@ const router = new Router({
         }
       ]
     },
+    //vue实现拖拽功能路由
+    {
+      path:'/draggable',
+      name:'draggable',
+      component: draggable,
+    },
+    //pdf实现页面
+    {
+      path: '/sign',
+      name: 'pdf',
+      component: pdf,
+    },
     //404page
     {
       path: '*',
       name: 'errorinfo',
       component: errorinfo
-    }
+    },
   ]
 });
 

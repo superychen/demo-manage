@@ -8,7 +8,7 @@ import 'element-ui/lib/theme-chalk/index.css';
 import axios from 'axios'
 import qs from 'qs'
 import Cookies from 'js-cookie'
-import fastdfsUrl from "./fastdfsUrl";
+import fastdfsUrl from "./fastdfsUrl"
 
 axios.defaults.withCredentials = true
 axios.create({
@@ -53,7 +53,7 @@ axios.interceptors.request.use(config => {
 axios.interceptors.response.use(response => {
 
   //对自定义请求为500的错误进行操作
-  if (response.data.code !== 200) {
+  if (response.status !== 200) {
     ElementUI.Message({
       message: response.data.data,
       showClose: true,

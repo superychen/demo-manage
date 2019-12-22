@@ -47,8 +47,7 @@
             label="操作"
             width="100">
             <template slot-scope="scope">
-              <el-button @click="handleClick(scope.row)" type="text" size="small">查看</el-button>
-              <el-button type="text" size="small">编辑</el-button>
+              <el-button @click="handleClick(scope.row)" type="text" size="small">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -67,15 +66,16 @@
       </el-col>
 
       <el-dialog
-        title="提示"
+        title="新增"
         :visible.sync="insertDialog"
         width="30%"
         :close-on-click-modal='false'
         :modal-append-to-body='false'
         :before-close="dialogClose">
         <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-          <el-form-item  label="权限名称" prop="perName">
-            <el-input @input.native="changeCode" placeholder="只能输入英文字符"  type="text" v-model="ruleForm.perName" autocomplete="off"></el-input>
+          <el-form-item label="权限名称" prop="perName">
+            <el-input @input.native="changeCode" placeholder="只能输入英文字符" type="text" v-model="ruleForm.perName"
+                      autocomplete="off"></el-input>
           </el-form-item>
           <el-form-item label="权限描述" prop="perDesc">
             <el-input v-model="ruleForm.perDesc"></el-input>
@@ -99,14 +99,14 @@
   export default {
     data() {
       let checkAge = (rule, value, callback) => {
-        if (value === ''　|| value.length > 30) {
+        if (value === '' || value.length > 30) {
           return callback(new Error('权限描述不能为空，且不得超过30个字符'));
-        }else {
+        } else {
           callback();
         }
       };
       let validatePerName = (rule, value, callback) => {
-        if (value === ''　||  value.length > 15) {
+        if (value === '' || value.length > 15) {
           callback(new Error('权限名称不能为空，且长度必须小于16'));
         } else {
           callback();
@@ -128,10 +128,10 @@
         },
         rules: {
           perName: [
-            { validator: validatePerName, trigger: 'blur' }
+            {validator: validatePerName, trigger: 'blur'}
           ],
           perDesc: [
-            { validator: checkAge, trigger: 'blur' }
+            {validator: checkAge, trigger: 'blur'}
           ]
         }
       }
@@ -157,8 +157,27 @@
           this.isDelete = true;
         }
       },
+      //删除权限，单独的删除权限，删除时必须先查询是否与角色关联的
       handleClick(row) {
         console.log(row);
+        this.$confirm('此操作将永久删除该权限, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$axios.delete('/apis/management/manage/permission/one', {params: {pid: row.pid}}).then(res => {
+            console.log(res.data);
+            if (res.data.code === 200) {
+              this.$getMessage('删除成功','success');
+              this.selectAllPermission();
+            }
+          }).catch(err => {
+            console.log(err.response);
+            this.$getMessage('删除过程中出现异常','error');
+          })
+        }).catch(() => {
+          this.$getMessage('已取消删除', 'info');
+        });
       },
       handleSizeChange(val) {
         this.pageSize = val;
@@ -197,10 +216,22 @@
       submitForm(formName) {
         this.$refs[formName].validate((valid) => {
           if (valid) {
-            alert('submit!');
-            //todo 新增请求
+            this.$axios.post('/apis/management/manage/permission', {
+              name: this.ruleForm.perName,
+              descript: this.ruleForm.perDesc,
+            }).then(res => {
+              console.log(res.data);
+              if (res.data.code === 200) {
+                this.insertDialog = false;
+                this.$getMessage('插入成功', 'success');
+                this.selectAllPermission();
+              }
+            }).catch(err => {
+              console.log(err.response);
+              this.$getMessage('新增出现未知异常,请联系管理员', 'error');
+            })
           } else {
-            this.$getMessage('请先填写正确数据','error');
+            this.$getMessage('请先填写正确数据', 'error');
             return false;
           }
         });
@@ -211,8 +242,8 @@
       //禁止输入中文汉字
       changeCode() {
         this.$nextTick(() => {
-          if(this.ruleForm.perName !== null){
-            this.ruleForm.perName = this.ruleForm.perName.replace(/[^\w\.\/]/ig,'')
+          if (this.ruleForm.perName !== null) {
+            this.ruleForm.perName = this.ruleForm.perName.replace(/[^\w\.\/]/ig, '')
           }
         })
       },
