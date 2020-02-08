@@ -70,7 +70,6 @@
               pid: this.checkedRole,
               rname: this.ruleForm.rname,
             }).then(res => {
-              console.log(res.data);
               if (res.data.code === 200) {
                 this.$getMessage('新增角色成功', 'success');
                 setTimeout(() => {this.$router.go(0)},1500);

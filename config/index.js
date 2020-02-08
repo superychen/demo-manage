@@ -21,7 +21,7 @@ module.exports = {
       },
       '/pdfs': {
         // 测试环境
-        target: 'http://192.168.228.51',  // 接口ip
+        target: 'http://192.168.0.110',  // 接口ip
         changeOrigin: true,  //是否跨域
         pathRewrite: {
           '^/pdfs': '' //需要rewrite重写的,

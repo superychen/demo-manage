@@ -109,6 +109,11 @@
         <el-form-item label="地址">
           <el-input v-model="formLabelAlign.address"></el-input>
         </el-form-item>
+        <el-form-item label="对应角色">
+          <el-checkbox-group v-model="checkedRole">
+            <el-checkbox v-for="role in roles" :label="role.rid" :key="role.rid">{{role.rname}}</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
          <el-button @click="dioagClose">取 消</el-button>
@@ -143,7 +148,9 @@
           address: '',
           password: '', //密码
           resetPass: false, //重置密码
-        }
+        },
+        checkedRole: [], //账号对应的角色
+        roles: [],//角色
       }
     },
 
@@ -225,6 +232,10 @@
               this.formLabelAlign.username = res.data.data.username;
               this.formLabelAlign.address = res.data.data.address;
               this.formLabelAlign.telephone = res.data.data.telephone;
+              let rid = res.data.data.roles.map(obj => {
+                return obj.rid;
+              });
+              this.checkedRole = rid;
             }
           }).catch(err => {
             console.log(err.response);
@@ -237,6 +248,7 @@
           this.formLabelAlign.address = '';
           this.formLabelAlign.telephone = '';
           this.formLabelAlign.password = '';
+          this.checkedRole = [];
         }
       },
       //新增用户或者修改用户
@@ -245,6 +257,7 @@
           username: this.formLabelAlign.username,
           address: this.formLabelAlign.address,
           telephone: this.formLabelAlign.telephone,
+          roleIds: this.checkedRole,
         };
         //新增用户
         if (this.uid === '') {
@@ -309,6 +322,13 @@
     },
     mounted() {
       this.selectAllPage();
+      this.$axios.get('/apis/management/manage/role').then(res => {
+        if (res.data.code === 200) {
+          this.roles = res.data.data;
+        }
+      }).catch(err => {
+        console.log(err);
+      })
     }
   }
 </script>

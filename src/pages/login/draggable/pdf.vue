@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div id="showPdf">
-      <el-scrollbar ref="elscrollbar" style="height: 800px;overflow-y: hidden;">
+    <div id="showPdf" style="width: 60%; margin-left: 20%; float: left;">
+      <el-scrollbar ref="elscrollbar" style="height: 1200px; overflow-y: hidden;">
         <div class="position page">
           <span class="span_1" @click="pageUp">上一页</span>
           <span>页码：{{`${pageNo}/${totals.length}`}}</span>
@@ -18,9 +18,33 @@
           </div>
         </div>
       </el-scrollbar>
+
+      <vue-draggable-resizable
+        v-if="isSeal"
+        :w="150"
+        :h="150"
+        :x="50"
+        :y="50"
+        :resizable="false"
+        :parent="true"
+        :grid="[10,10]"
+        class-name="dragging1"
+        @dragging="onDrag"
+        @resizing="onResize"
+      >
+        <!--        <p>-->
+        <!--          你好！ 我是一个灵活的组件。 你可以拖我四处，你可以调整我的大小。-->
+        <!--          <br/>-->
+        <!--          X: {{ x }} / Y: {{ y }} - Width: {{ width }} / Height: {{ height }}-->
+        <!--        </p>-->
+        <img :src="sealUrl" alt="印章">
+      </vue-draggable-resizable>
+    </div>
+    <div class="" style="position: fixed; right: 5%; top: 15px;">
+      <el-button @click="isShowSeal" type="primary">显示章</el-button>
+      <el-button @click="saveSign" type="primary">保存</el-button>
     </div>
   </div>
-
 </template>
 
 <script>
@@ -43,7 +67,16 @@
           updateBy: 'cqyc',
           updateOn: new Date(),
           workNo: '500240',
-        }
+        },
+        width: 0,
+        height: 0,
+        x: 0,
+        y: 0,
+        //
+        signUrl: "pdfs/group1/M00/00/00/wKjkM13onnWAVRgEAAU8B7_39zQ690.pdf",
+        isSeal: false, //印章是否显示
+        //印章图片路径，先写死　
+        sealUrl: "pdfs/group1/M00/00/00/wKgAZ14AXueAIuRDAAAVlBUVF0Q788.jpg",
       }
     },
     mounted() {
@@ -57,7 +90,7 @@
       getPdfFun() {
         axios({
           method: 'get',
-          url: 'pdfs/group1/M00/00/00/wKjkM13onnWAVRgEAAU8B7_39zQ690.pdf',
+          url: this.signUrl,
           data: {},
           responseType: 'blob'
         }).then(res => {
@@ -134,7 +167,7 @@
        * 上一页
        */
       pageUp() {
-        let totalPages = this.totals.length
+        let totalPages = this.totals.length;
         if (this.pageNo > 0) {
           this.scrollbar.scrollTop = (this.pageNo - 2) * (this.scrollbar.scrollHeight / totalPages)
         }
@@ -147,6 +180,39 @@
         if (this.pageNo < totalPages) {
           this.scrollbar.scrollTop = this.pageNo * (this.scrollbar.scrollHeight / totalPages)
         }
+      },
+
+      //扩大时的操作
+      onResize: function (x, y, width, height) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+      },
+      onDrag: function (x, y) {
+        this.x = x;
+        this.y = y;
+      },
+
+      //签约
+      saveSign() {
+        let pdfUpload = {
+          fileId: this.signUrl,//pdf的地址，需要去除pdfs
+          fileImg: this.sealUrl, //图片地址
+          pageNo: this.pageNo, //pdf当前页
+          offsetX: parseFloat("300.0"),
+          offsetY: parseFloat("300.0"),
+        };
+        console.log(this.pageNo);
+        this.$axios.post('/apis/management/file/pdf/upload', pdfUpload).then(res => {
+          console.log(res.data);
+        }).catch(err => {
+          console.log(err.response);
+        })
+      },
+      isShowSeal() {
+        //显示印章
+        this.isSeal = true;
       }
     }
   }
@@ -194,9 +260,14 @@
     }
 
     .pdf-box {
+      width: 60%;
       position: relative;
       text-align: left;
       display: inline-block;
+    }
+
+    .dragging1 {
+      margin-left: 20%;
     }
   }
 </style>

@@ -83,7 +83,7 @@
       :visible.sync="dialogVisible"
       width="30%"
       :before-close="handleClose">
-      <user-info ref="cuserInfo" v-bind:user="user"></user-info>
+      <user-info @changeImgUrl="changeImgUrl" ref="cuserInfo" v-bind:user="user"></user-info>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="paUserInfo">确 定</el-button>
@@ -149,6 +149,7 @@
           address: '', //用户的地址
           uid: 0, //用户id
           userImg: '',//用户图片
+          likeWebsite: 0,//是否点赞
         },
         passwordDialog: false,
         password: '',//旧密码
@@ -170,7 +171,6 @@
       },
       initMenu() {
         this.$axios.get('/apis/management/manage/menu').then(res => {
-          console.log(res.data.data);
           this.sider_menu_data = res.data.data;
         }).catch(err => {
           console.log(err.response);
@@ -178,13 +178,14 @@
       },
       //得到用户信息
       userInfo() {
-        this.$axios.get('/apis/login-sms/login/user').then(res => {
+        this.$axios.get('/apis/login-sms/website/user').then(res => {
           if (res.data.code === 200) {
             this.user.username = res.data.data.username;
             this.user.telephone = res.data.data.telephone;
             this.user.address = res.data.data.address;
             this.user.uid = res.data.data.uid;
             this.user.userImg = res.data.data.userImg;
+            this.user.likeWebsite = res.data.data.likeWebsite;
           }
         }).catch(err => {
           console.log(err.response);
@@ -204,11 +205,11 @@
       passwordClose(done) {
         done();
       },
+      changeImgUrl(msg) {
+        this.user.userImg = msg;
+      },
       paUserInfo() {
-        this.user.userImg = this.$refs.cuserInfo.uploadUrl;
-        console.log(this.user);
         this.$axios.put('apis/login-sms/login/user', this.user).then(res => {
-          console.log(res.data);
           if (res.data.code === 200) {
             this.$getMessage('修改用户成功', 'success')
             this.dialogVisible = false;
@@ -255,7 +256,6 @@
           veriyCode: this.veriyCode
         })).then(res => {
           if (res.data.code === 200) {
-            console.log(res.data);
             this.$getMessage('修改密码成功,请重新登录', 'success')
             this.$Cookies.set('token', '');
             setTimeout(() => {
@@ -269,12 +269,16 @@
       },
       //退出登录
       exitUser() {
-        this.$axios.post('/apis/login-sms/login/exit').then(res => {
+        this.$axios.post('/apis/login-sms/login/exit', this.$qs.stringify({
+          username: this.$Cookies.get('username'),
+        })).then(res => {
           if (res.data.code === 200) {
-            this.$getMessage('退出成功','success');
+            this.$getMessage('退出成功', 'success');
             //清空cookie中的token
-            this.$Cookies.set('token','');
-            setTimeout(() => {this.$router.push({path:'/login'})},1000);
+            this.$Cookies.set('token', '');
+            setTimeout(() => {
+              this.$router.push({path: '/login'})
+            }, 1000);
           }
         }).catch(err => {
           console.log(err.response);

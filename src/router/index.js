@@ -10,6 +10,10 @@ import menu from "../pages/menu/menu";
 import errorinfo from '../pages/err/404'
 import draggable from "../pages/login/draggable/draggable";
 import pdf from "../pages/login/draggable/pdf";
+import resizable from "../pages/login/draggable/resizable";
+import employer from "../pages/employ/employer";
+import step from "../pages/employ/step/step";
+import appoint from "../pages/appoint/appoint";
 
 Vue.use(Router);
 
@@ -52,6 +56,21 @@ const router = new Router({
           name: 'menu',
           component: menu,
         },
+        {
+          path: '/employ',
+          name: 'employer',
+          component: employer,
+        },
+        {
+          path: '/step',
+          name: 'step',
+          component: step,
+        },
+        {
+          path: '/appoint',
+          name: appoint,
+          component: appoint,
+        }
       ]
     },
     //后台管理页面路由
@@ -71,8 +90,8 @@ const router = new Router({
     },
     //vue实现拖拽功能路由
     {
-      path:'/draggable',
-      name:'draggable',
+      path: '/draggable',
+      name: 'draggable',
       component: draggable,
     },
     //pdf实现页面
@@ -80,6 +99,12 @@ const router = new Router({
       path: '/sign',
       name: 'pdf',
       component: pdf,
+    },
+    //vue拖动组件路由
+    {
+      path: '/resizable',
+      name: resizable,
+      component: resizable,
     },
     //404page
     {

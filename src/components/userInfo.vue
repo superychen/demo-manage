@@ -14,6 +14,7 @@
         <el-upload
           class="avatar-uploader"
           :action="doUpload"
+          :headers="myHeaders"
           :show-file-list="false"
           :on-success="handleAvatarSuccess"
           :on-error="uploadError"
@@ -36,15 +37,18 @@
         imageUrl: '', //element的回显的图片url
         doUpload: '/apis/management/file/upload/tumb',
         uploadUrl: '',
+        myHeaders: {
+          Authorization: 'Bearer ' + this.$Cookies.get('token'),
+        },
       };
     },
     methods: {
       handleAvatarSuccess(res, file) {
-        console.log(res);
         if (res.code === 200) {
           // this.imageUrl = URL.createObjectURL(file.raw);
           this.imageUrl = this.$fastdfsUrl.fastdfs + res.data;
           this.uploadUrl = res.data;
+          this.$emit('changeImgUrl', res.data);
         }
       },
       beforeAvatarUpload(file) {
@@ -76,7 +80,6 @@
       }
     },
     mounted() {
-      console.log(this._props.user);
       this.imageUrl = this.$fastdfsUrl.fastdfs + this._props.user.userImg;
     }
   }

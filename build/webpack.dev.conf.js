@@ -40,6 +40,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     publicPath: config.dev.assetsPublicPath,
     proxy: config.dev.proxyTable,
     quiet: true, // necessary for FriendlyErrorsPlugin
+    disableHostCheck: true, //如果hostname不是配置内的就不能访问，添加这个解决
     watchOptions: {
       poll: config.dev.poll,
     }

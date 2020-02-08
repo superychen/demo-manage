@@ -17,7 +17,7 @@
             <el-form-item label="校验码" prop="verfiyCode">
               <el-input v-model.trim="ruleForm.verfiyCode" placeholder="校验码">
                 <template slot="append">
-                  <img @click="changeImgUrl" :src="createImg" alt="" height="35">
+                  <img :src="imgUrl" width="120px" height="30px" @click="changeImgUrl" class="mt-4"></img>
                 </template>
               </el-input>
             </el-form-item>
@@ -57,21 +57,22 @@
         }
       };
       let validatePass = (rule, value, callback) => {
-        //必须包含数字和字母
-        let reg = new RegExp(/^(?![^a-zA-Z]+$)(?!\D+$)/);
-        //匹配所有空格
-        let regKong = /\s+/g;
-        if (value === '') {
-          callback(new Error('密码不能输入为空'));
-        } else if (value.length < 0 || value.length > 16) {
-          callback(new Error('密码长度必须大于0小于16位'));
-        } else if (regKong.test(value)) {
-          callback(new Error('密码输入不能包含有空格'));
-        } else if (!reg.test(value)) {
-          callback(new Error('密码必须由数字和字母组成'))
-        } else {
-          callback();
-        }
+        // //必须包含数字和字母
+        // let reg = new RegExp(/^(?![^a-zA-Z]+$)(?!\D+$)/);
+        // //匹配所有空格
+        // let regKong = /\s+/g;
+        // if (value === '') {
+        //   callback(new Error('密码不能输入为空'));
+        // } else if (value.length < 0 || value.length > 16) {
+        //   callback(new Error('密码长度必须大于0小于16位'));
+        // } else if (regKong.test(value)) {
+        //   callback(new Error('密码输入不能包含有空格'));
+        // } else if (!reg.test(value)) {
+        //   callback(new Error('密码必须由数字和字母组成'))
+        // } else {
+        //   callback();
+        // }
+        callback();
       };
       return {
         ruleForm: {
@@ -79,6 +80,7 @@
           checkPass: '',
           verfiyCode: ''
         },
+        imgUrl: '',//验证码图片
         createImg: 'apis/login-sms/comm/img',
         rules: {
           username: [
@@ -95,17 +97,21 @@
     },
     methods: {
       submitForm(formName) {
+        //先删除,不然带过去的请求头有两个auth
+        this.$Cookies.remove('token');
+        let imgUuid = localStorage.getItem("imgUuid");
         this.$refs[formName].validate((valid) => {
-          console.log(valid);
           if (valid) {
             this.$axios.post('/apis/login-sms/login', this.$qs.stringify({
               username: this.ruleForm.username,
               password: this.ruleForm.checkPass,
               imgCode: this.ruleForm.verfiyCode,
+              imgUuid: imgUuid,
             })).then(res => {
               //跳转到后台管理主页面
               if (res.data.code === 200) {
-                this.$Cookies.set('token', res.data.data.token, {expires: 1});
+                //讲用户登录时的token存入到cookie中去，并且设置为1天之后过期
+                this.$Cookies.set('token', res.data.data.jwt.access_token, {expires: 1});
                 this.$Cookies.set('username', res.data.data.username, {expires: 1});
                 this.$router.push({path: '/home'});
               }
@@ -123,12 +129,21 @@
         this.$refs[formName].resetFields();
       },
       //点击更换图片
-      changeImgUrl () {
-        this.createImg="apis/login-sms/comm/img?id="+Math.random();
+      changeImgUrl() {
+        if (!localStorage.getItem("imgUuid")) {
+          let timestamp = new Date().getTime();
+          let deviceId = this.uuid.uuid(16, 32).replace(/-/g, "") + timestamp;
+          localStorage.setItem('imgUuid', deviceId);
+          this.imgUrl = "apis/login-sms/comm/img?imgUuid=" + deviceId;
+        } else {
+          let imgUuid = localStorage.getItem("imgUuid");
+          this.imgUrl = "apis/login-sms/comm/img?imgUuid=" + imgUuid + '&random=' + Math.random();
+        }
       }
     },
     mounted() {
-    }
+      this.changeImgUrl();
+    },
   }
 </script>
 

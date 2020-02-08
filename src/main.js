@@ -9,6 +9,9 @@ import axios from 'axios'
 import qs from 'qs'
 import Cookies from 'js-cookie'
 import fastdfsUrl from "./fastdfsUrl"
+import VueDraggableResizable from 'vue-draggable-resizable'
+// 可选择导入选择样式
+import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
 
 axios.defaults.withCredentials = true
 axios.create({
@@ -22,18 +25,8 @@ Vue.prototype.$qs = qs;
 //操作cookie
 Vue.prototype.$Cookies = Cookies;
 Vue.prototype.$fastdfsUrl = fastdfsUrl;
-
-//刷新token
-Vue.prototype.$refresh = function () {
-  axios.post('/apis/login-sms/login/refresh', {
-    username: Cookies.get('username')
-  }).then(res => {
-    if (res.data.code === 200) {
-      this.$Cookies.set('token', res.data.data.token, {expires: 1});
-      this.$Cookies.set('username', res.data.data.username, {expires: 1});
-    }
-  });
-};
+//全局注册拖动组件
+Vue.component('vue-draggable-resizable', VueDraggableResizable)
 
 //Axios请求拦截器，这是对token的拦截
 axios.interceptors.request.use(config => {
@@ -41,7 +34,7 @@ axios.interceptors.request.use(config => {
   let username = Cookies.get('username');
   //判断是否存在token，如果存在的话，则每个http header都加上token
   if (token && username) {
-    config.headers.token = token;
+    config.headers.Authorization ="Bearer " + token;
     config.headers.username = username;
   }
   return config;
@@ -53,7 +46,11 @@ axios.interceptors.request.use(config => {
 axios.interceptors.response.use(response => {
 
   //对自定义请求为500的错误进行操作
-  if (response.status !== 200) {
+  if (response.data.code !== 200) {
+    //如果是请求pdf，直接走fastdfs路线
+    if (response.status === 200 && response.data.type === 'application/pdf') {
+      return response;
+    }
     ElementUI.Message({
       message: response.data.data,
       showClose: true,

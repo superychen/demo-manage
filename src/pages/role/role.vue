@@ -234,7 +234,6 @@
       //删除角色
       deleteRole() {
         this.$axios.delete('apis/management/manage/role', {data: this.deleteIds}).then(res => {
-          console.log(res.data);
           if (res.data.code === 200) {
             this.$getMessage('删除角色成功', 'success');
             setTimeout(() => {
@@ -258,7 +257,6 @@
               pid: this.checkedRole,
               rname: this.ruleForm.rname,
             }).then(res => {
-              console.log(res.data);
               if (res.data.code === 200) {
                 this.$getMessage('修改角色成功', 'success');
                 setTimeout(() => {
