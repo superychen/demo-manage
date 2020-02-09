@@ -12,6 +12,8 @@ import fastdfsUrl from "./fastdfsUrl"
 import VueDraggableResizable from 'vue-draggable-resizable'
 // 可选择导入选择样式
 import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
+//无限滚动
+import infiniteScroll from 'vue-infinite-scroll'
 
 axios.defaults.withCredentials = true
 axios.create({
@@ -19,6 +21,7 @@ axios.create({
 });
 
 Vue.use(ElementUI);
+Vue.use(infiniteScroll);
 Vue.config.productionTip = false;
 Vue.prototype.$axios = axios;
 Vue.prototype.$qs = qs;
