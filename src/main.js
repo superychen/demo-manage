@@ -14,6 +14,7 @@ import VueDraggableResizable from 'vue-draggable-resizable'
 import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
 //无限滚动
 import infiniteScroll from 'vue-infinite-scroll'
+import uuid from "./uuid";
 
 axios.defaults.withCredentials = true
 axios.create({
@@ -25,6 +26,7 @@ Vue.use(infiniteScroll);
 Vue.config.productionTip = false;
 Vue.prototype.$axios = axios;
 Vue.prototype.$qs = qs;
+Vue.prototype.uuid = uuid;
 //操作cookie
 Vue.prototype.$Cookies = Cookies;
 Vue.prototype.$fastdfsUrl = fastdfsUrl;

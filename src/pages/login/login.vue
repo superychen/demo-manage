@@ -6,8 +6,7 @@
           <div class="title">后台管理</div>
         </div>
         <div class="login-form">
-          <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px"
-                   class="demo-ruleForm">
+          <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
             <el-form-item label="用户名" prop="username">
               <el-input type="text" v-model.trim="ruleForm.username" autocomplete="off"></el-input>
             </el-form-item>
@@ -180,7 +179,10 @@
         box-sizing: border-box;
         border-radius: 5px;
         background-color: #ffffff;
-
+        .demo-ruleForm{
+          margin-left: -10%;
+          width: 350px;
+        }
         .el-row {
           margin-bottom: 20px;
 

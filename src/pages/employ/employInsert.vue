@@ -143,6 +143,7 @@
                 this.dialogFormVisible = false;
                 //向父组件传值
                 this.$emit('insertGetStaff', true);
+                this.$router.go(0);//新建成功刷新组件
               }
             }).catch(err => {
               console.log(err);

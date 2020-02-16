@@ -1,24 +1,20 @@
 <template>
   <div>
-
     <el-dialog
-      title="提示"
+      title="分配员工"
       :visible.sync="dialog"
       :modal="false"
-      :close-on-click-modal='false'
-      :before-close="dialogClose">
+      :show-close="false"
+      :close-on-click-modal='false'>
       <!--无限滚动-->
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="dialogClose">取 消</el-button>
-        <el-button type="primary">确 定</el-button>
-      </span>
+      <choose-staff :appId="appId"  @staffClose="staffClose"></choose-staff>
     </el-dialog>
-
   </div>
 </template>
 
 <script>
   import chooseStaff from "./chooseStaff";
+
   export default {
     name: "appointStaff",
     props: ['isDialog', 'appointmentId'],
@@ -29,6 +25,7 @@
         count: 10,
         busy: false,
         data: [],
+        appId: '',
       };
     },
     //计算
@@ -47,7 +44,6 @@
       }
     },
     methods: {
-
       dialogClose() {
         this.$confirm('确认关闭？')
           .then(_ => {
@@ -58,15 +54,26 @@
           });
       },
       chooseStaff(appId) {
-        // this.$axios.get('')
+        this.appId = appId;
       },
-
+      staffClose(msg) {
+        if (msg === 0) {
+          this.dialogClose();
+        } else {
+          this.$getMessage('出错出错!!!', "error");
+        }
+      },
     },
-    mounted() {
+    created() {
+
     }
   }
 </script>
 
 <style scoped>
+
+  .el-dialog__body {
+    padding: 0 !important;
+  }
 
 </style>

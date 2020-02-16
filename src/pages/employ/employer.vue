@@ -43,9 +43,9 @@
             prop="staffSex"
             label="性别"
             width="80">
-            <template slot-scope="scope">
-              <span>{{scope.row.staffSex === 0 ? '男' : '女'}}</span>
-            </template>
+<!--            <template slot-scope="scope">-->
+<!--              <span>{{scope.row.staffSex === 0 ? '男' : '女'}}</span>-->
+<!--            </template>-->
           </el-table-column>
           <el-table-column
             prop="staffIdCard"
@@ -153,6 +153,7 @@
         this.$axios.get('apis/management/manage/staff', {
           params: param
         }).then(res => {
+          console.log(res.data);
           this.tableData = res.data.data.records;
           this.currentPage = res.data.data.current;
           this.totalSize = res.data.data.total;

@@ -2,7 +2,10 @@
   <div>
     <el-tabs v-model="activeName" @tab-click="tabClick">
       <el-tab-pane label="未检测" name="first">
-        <el-row>
+        <el-row v-if="!isShow">
+          当前还没有预约的车辆哟!!!
+        </el-row>
+        <el-row v-if="isShow">
           <el-col :span="7" v-for="(item,index) in appData" :offset="index > 0 ? 1 : 0" :key="index">
             <el-card shadow="hover">
               <el-image fit="contain" style="width: 300px; height: 200px;"
@@ -70,6 +73,7 @@
         totalSize: 0, //总的数据
         isDialog: 0,
         appointmentId: 0,//需要传值的预约id
+        isShow: false, //true就有值,false没有值
       }
     },
     methods: {
@@ -81,9 +85,14 @@
           }
         }).then(res => {
           console.log(res.data);
-          this.appData = res.data.data.records;
-          this.currentPage = res.data.data.current;
-          this.totalSize = res.data.data.total;
+          if (res.data.code === 200) {
+            this.isShow = true;
+            this.appData = res.data.data.records;
+            this.currentPage = res.data.data.current;
+            this.totalSize = res.data.data.total;
+          } else if (res.data.code === 203) {
+            this.isShow = false;
+          }
         }).catch(err => {
           console.log(err);
         })

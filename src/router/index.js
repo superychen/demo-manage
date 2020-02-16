@@ -14,6 +14,8 @@ import resizable from "../pages/login/draggable/resizable";
 import employer from "../pages/employ/employer";
 import step from "../pages/employ/step/step";
 import appoint from "../pages/appoint/appoint";
+import staffResult from "../pages/employ/staff/staffResult";
+import staffRes from "../pages/employ/staff/staffRes";
 
 Vue.use(Router);
 
@@ -70,6 +72,16 @@ const router = new Router({
           path: '/appoint',
           name: appoint,
           component: appoint,
+        },
+        {
+          path: '/result',
+          name: staffResult,
+          component: staffResult,
+        },
+        {
+          path: '/staffRes/:appId',
+          name: staffRes,
+          component: staffRes,
         }
       ]
     },

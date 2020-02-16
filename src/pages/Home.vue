@@ -33,12 +33,17 @@
     </div>
 
     <!--用户界面导航栏-->
-    <div class="topbar-wrapper" :style="{left: this.isCollapsed?'64px':'200px'}">
-      <div style="float: left" class="menu-collapse-wrapper float-left" @click="toggleMenu">
+    <div  class="topbar-wrapper" :style="{left: this.isCollapsed?'64px':'200px'}">
+      <div v-if="pcOrPhone" style="float: left" class="menu-collapse-wrapper float-left" @click="toggleMenu">
         <i class="el-icon-menu" :style="{transform: 'rotateZ(' + (this.isCollapsed ? '90' : '0') + 'deg)'}"></i>
       </div>
       <div style="float: left;" class="title">车辆检测后台管理</div>
-      <ul style="float: right" class="menu-list">
+      <ul v-if="!pcOrPhone" style="float: right" class="menu-list">
+        <li @click="exitUser" class="menu-item" title="退出登录">
+          <i class="icon el-icon-switch-button"></i>
+        </li>
+      </ul>
+      <ul v-if="pcOrPhone" style="float: right" class="menu-list">
         <li class="menu-item" style="padding: 0;">
           <el-dropdown
             :show-timeout="10"
@@ -160,6 +165,7 @@
         codeTime: 60,//发送验证码后需要300后才能发送
         codeMsg: "发送验证码",
         timeName: null,
+        pcOrPhone: true, //true为电脑端,false为手机端
       }
     },
     methods: {
@@ -283,11 +289,24 @@
         }).catch(err => {
           console.log(err.response);
         })
+      },
+      //判断当前用户是手机还是电脑用户
+      _isMobile() {
+        let flag = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)
+        return flag;
       }
     },
     mounted() {
       this.initMenu();
       this.userInfo();
+      if (this._isMobile()) {
+        //手机端
+        this.pcOrPhone = false;
+        this.isCollapsed = true;
+      } else {
+        //PC端
+        this.pcOrPhone = true;
+      }
     }
   }
 </script>
